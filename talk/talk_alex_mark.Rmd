@@ -71,8 +71,12 @@ knitr::opts_chunk$set(echo = FALSE)
 
 - R + RStudio on central folder
     - R-engine usable by non-programmers who just run a script
+    - Selection of R packages pre-installed
+    - Full CRAN repo available internally (there's no direct internet access from most VM's)
 - RDS server (8core, 64G VM's) for heavier work
-
+- Working on connection to Spark server (Sparklyr)
+- Looking into RStudio/Shiny server but little/no support experience for
+linux currently exists in SN.
 
 
 
