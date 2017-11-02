@@ -1,8 +1,10 @@
 ---
-title: "R at the statistical office"
+title: "Using R in the Statistical Office"
 author: "Alex Kowarik and Mark van der Loo"
 date: "uRos 2017 | Bucharest"
-output: beamer_presentation
+output: 
+  beamer_presentation:
+    fig_caption: false
 ---
 
 ```{r setup, include=FALSE}
@@ -30,16 +32,47 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Introducing R
 
-- bloo
-- buu
 
+### Typical hurdles (2010):
+
+- How to install FOSS? 
+- OMG everybody can write CODE now!
+
+### Approach
+
+- Project with dedicated project leader
+- Standardized 3 installation types geared to different user types.
+- Set up code/documentation standards
+
+### Currently
+
+- $\pm$ 200 users ($\pm 100$ active)
+- One single central installation
+- Refer to tidy code/documentation standard
 
 ## Support and policy
 
-- hey
-- ho
+### Local user group _kennR!_
 
-## Infrastructure
+- Beginner's course & advanced workshops
+- User meetings & support
+- Functional management
 
-- bla
+### FOSS Contribution Policy (in short)
+
+- When relevant to statistics Netherlands, with positive business case.
+
+## Packages contributed
+
+![](fig/wordcloud.pdf)
+
+
+## Current infrastructure
+
+- R + RStudio on central folder
+    - R-engine usable by non-programmers who just run a script
+- RDS server (8core, 64G VM's) for heavier work
+
+
+
 
