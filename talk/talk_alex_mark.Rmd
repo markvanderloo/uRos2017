@@ -1,0 +1,45 @@
+---
+title: "R at the statistical office"
+author: "Alex Kowarik and Mark van der Loo"
+date: "uRos 2017 | Bucharest"
+output: beamer_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+# Statistics Austria
+
+## Introducing R
+
+- bla
+- bla
+
+## Support and policy
+
+- bla
+
+## Infrastructure
+
+- blabla
+
+
+# Statistics Netherlands
+
+## Introducing R
+
+- bloo
+- buu
+
+
+## Support and policy
+
+- hey
+- ho
+
+## Infrastructure
+
+- bla
+
