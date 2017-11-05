@@ -1,0 +1,600 @@
+---
+title: "Statistical Data Cleaning with R"
+author: "Mark van der Loo"
+date: "uRos2017 | Bucharest"
+output: 
+  beamer_presentation:
+    includes:
+      in_header: ../tex/header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(magrittr)
+```
+
+## Agenda
+
+- Statistical value chain
+- Data validation
+- Error localization
+- Imputation
+- Correcting data
+- Loging changes
+
+
+## Who am I?
+
+- PhD: physics of molecules (2007)
+- Official Statistician since 2007
+- Working with `R` (first `S+`) since 2007
+- First package (extremevalues) on CRAN 2010
+
+\begin{center}
+\begin{tabular}{cc}
+\includegraphics[height=3cm]{fig/rstudiobook.jpeg}
+&
+\includegraphics[height=3cm]{fig/book.jpg}
+\end{tabular}
+\end{center}
+
+# Statistical value chain
+
+## Statistical Value Chain
+
+\begin{center}
+\input{fig/valuechain.tex}
+\end{center}
+
+## Why the statistical value chain?
+
+### It is a way to
+
+- Organize thoughts
+- Separate production systems
+- Store data in well-defined states
+    - allows monitoring
+    - allows for reuse and data sharing accross the office
+
+### It is not
+
+- A prescription for linear data processing.
+- Forcing you to use these exact five steps.
+
+## Tip, or how I organize my analyses projects
+
+- Each step is in a numbererd folder (i.e. `01Raw`)
+- The folder contains R (Rmd) files that
+    - Pull in the data from the previous folder, process it, and write the output.
+    - There's also a `readme.md` describing the output in that folder.
+
+
+# Data validation
+
+## Data validation
+
+### Definition 
+
+An activity, checking whether a combination of values comes from a predefined set of allowed value combinations.
+\vfill
+\hfill{}
+\tiny{ESS Handbook on data validation (2015)}
+
+### Examples
+
+- Is `profit` stored as a number (not text)?
+- Is `age >= 0`?
+- When `age < 15`, is `job_status == "no job"` ?
+- Is the mean turnover of companies in an economic sector positive?
+
+## An example Input dataset
+
+```{r,echo=TRUE}
+library(validate)
+data(retailers)
+head(retailers[3:7])
+# we add a ID column for later use...
+retailers$rec_id <- sprintf("%03d",1:nrow(retailers))
+```
+
+
+
+## Data validation with the `validate` package
+
+```{r,echo=TRUE}
+# define validation rules
+rules <- validator(
+  turnover + other.rev == total.rev
+  , turnover >= 0
+  , other.rev >= 0
+  , total.rev >= 0
+  , if (staff > 0) staff.costs > 0
+)
+# confront data with ruleset
+cf <- confront(retailers, rules, key="rec_id")
+```
+
+## Data validation with the `validate` package
+
+```{r, echo=TRUE}
+summary(cf)
+```
+
+
+## Data validation with the `validate` package
+
+```{r,echo=TRUE,fig.height=5}
+barplot(cf, main="retailers")
+```
+
+
+## Data validation with the `validate` package
+
+\scriptsize{}
+```{r, echo=TRUE}
+as.data.frame(cf) %>% head()
+```
+\normalfont{}
+
+## Overview
+
+![](fig/validate.pdf)
+
+## Overview
+
+Define $K=\{0,1,\ldots,N\}$ a finite set of keys identifying objects and variables,
+and $D$ the union of all the variable domains.
+
+### Formal definition 
+
+A _validation rule_ is a surjective function
+$$
+v : D^K \to \{0,1,\textsf{NA}\}
+$$
+That takes a data set and outputs a logical or \textsf{NA}.
+
+### Implementation
+
+In `validate` any statement that evaluates to a `logical` is considered a validation rule.
+
+
+## Rule import/export
+
+###  Read/write validation rules from/to
+
+- Commandline (shown before)
+- Files (free-form, `yaml`)
+- `data.frame`
+
+\scriptsize{}
+```{r, eval=FALSE, echo=TRUE}
+# Contents of rules.txt
+
+# sanity of the 'turnover' variable
+mean(turnover) >= 0
+mean(turnover) > mean(profit)
+# balance checks
+turnover + other.rev == total.rev
+```
+
+```{r,eval=FALSE, echo=TRUE}
+rules <- validator(.file="rules.txt")
+```
+\normalfont{}
+
+
+## Using validation results
+
+
+\begin{tabular}{ll}
+\textbf{Function}& \textbf{description}\\
+\code{summary}   & Short by-rule summary\\
+\code{aggregate} & Aggregate by rule, or by record\\
+\code{sort}      & Aggregate and sort\\
+\code{values}    & Get raw output values\\
+\code{as.data.frame} & Cast results into data frame\\
+\code{compare}   & Compare datasets wrt a rule set\\
+\code{cells}     & Compare cell values.\\
+\end{tabular}
+
+# Rule management
+
+## Managing rule sets
+
+### Problem
+
+Rule sets often grow organically and are hardly pruned. As a result, they may contain
+- Redundancies
+- Contradictions,
+rendering the rule set inefficient and hard to understand.
+
+### Idea 
+
+Weed out redundancies and contradictions automatically (as much as possible)
+
+## Rule management with `validatetools`
+
+### Recal our rule set
+
+```{r, echo=TRUE}
+rules
+```
+
+## Rule management with `validatetools`
+
+```{r,echo=TRUE}
+library(validatetools)
+rules <- simplify_rules(rules)
+rules
+```
+\vfill{}
+\hfill{}{\tiny de Jonge and Van der Loo (2017)}
+
+
+
+
+# Error localization
+
+
+## Error localization
+
+### Question
+
+Knowing that a record violates a number of rules, what fields do I need to change so
+I can fix things?
+
+### Answer
+
+Find the smallest (weighted) number of fields whose values can be replaced
+so that all rules can be satisfied.
+\vfill{}
+\hfill{}
+\tiny{}Fellegi and Holt (1976)
+
+
+## Error localization
+
+```{r,echo=TRUE}
+# recall our rule set
+rules
+```
+
+## Locating errors with `errorlocate`
+
+\scriptsize{}
+```{r,echo=TRUE}
+library(errorlocate)
+error_locations <- locate_errors(retailers, rules)
+values(error_locations)[30:37, 3:7]
+```
+\normalfont{}
+
+## Locating errors with `errorlocate`
+
+\scriptsize{}
+```{r,echo=TRUE}
+summary(error_locations)
+```
+\normalfont{}
+
+## Replacing erroneous values
+
+```{r,echo=TRUE}
+# Replace erroneous values with NA (default)
+fixable_data <- replace_errors(retailers, rules)
+
+# check nr of missings
+sum(is.na(retailers))
+sum(is.na(fixable_data))
+```
+
+# Deductive data cleaning
+
+## Deductive imputation
+
+### `impute_lr` 
+
+Derive unique imputations (where possible) based on linear restrictions.
+
+### Example
+
+```{r,eval=FALSE, echo=TRUE}
+# ruleset
+turnover + other.rev == total.rev
+turnover  >= 0
+other.rev >= 0
+```
+If `total.rev = 0`, then `turnover` and `other.rev` must equal 0.
+
+
+
+## Deductive imputation with `deductive`
+
+\scriptsize{}
+```{r,echo=TRUE}
+library(deductive)
+lr_imputed <- impute_lr(fixable_data, rules)
+# check nr of imputations using validate::cells
+cells(start=retailers, fixable=fixable_data, impute_lr=lr_imputed
+      , compare='sequential')
+```
+\normalfont{}
+
+## Deductive correction: typos in numbers
+
+### `correct_typos`
+
+Check whether linear balance restrictions can be fixed by assuming a typographic
+error in one of the numbers.
+
+### Example
+```{r,eval=FALSE, echo=TRUE}
+# ruleset
+turnover + other.rev == total.rev
+turnover  >= 0
+other.rev >= 0
+```
+If `turnover = 100`, `other.rev = 50` and `total.rev = 105`, swapping te last two
+digits in `total.rev` fixes the error.
+
+## Deductive correction with `deductive`
+
+```{r,echo=TRUE}
+typos_corrected <- correct_typos(lr_imputed,rules[1:3])
+```
+
+## Deductive correction with `deductive`
+\scriptsize{}
+```{r,eval=TRUE,echo=TRUE}
+# Compare progress on rule violation using validate::compare 
+compare(rules, lr_imputed, typos_corrected)
+```
+\normalfont{}
+
+# Imputation
+
+## Visualization of missing values with `VIM`
+
+```{r,echo=TRUE,fig.height=5}
+VIM::aggr(typos_corrected[3:7])
+```
+
+\vfill{}
+\hfill{}\tiny{Kowarik and Templ (2016)}
+
+
+
+## Inspection of the missing data mechanism
+
+```{r, echo=TRUE, fig.height=5, warning=FALSE,message=FALSE}
+VIM::pbox(typos_corrected[3:7], pos=1, las=2)
+```
+
+## Imputing of missing values in R
+
+### Specialized packages
+
+  - Many available (VIM, mice, Amelia, mi, $\ldots$)
+  - Interfaces vary (a lot)
+
+### DIY with model/predict
+
+```{r, eval=FALSE, echo=TRUE}
+m <- lm(Y ~ X, data=mydata)
+ina <- is.na(mydata$Y)
+mydata[ina, "Y"] <- predict(m, newdata = mydata[ina,])
+```
+
+- Code duplication, doesn't always work
+
+
+## Idea of the simputation package
+
+### Provide
+
+- a _uniform interface_,
+- with _consistent behaviour_,
+- across _commonly used methodologies_
+
+
+### To facilitate
+
+- experimentation 
+- configuration for production
+- Integration with other process steps
+
+
+
+## The simputation interface
+
+```
+impute_<model>(data, <imputed vars> ~ <predictor vars>)
+```
+
+### Example: linear model imputation
+
+```{r,echo=TRUE,eval=TRUE}
+library(simputation)
+typos_corrected[3:7] %>% 
+  impute_lm(other.rev ~ turnover) %>%
+  head(3)
+```
+
+## Example: chaining imputations
+
+```{r,echo=TRUE}
+typos_corrected[3:7] %>% 
+  impute_lm(other.rev ~ turnover + staff) %>% 
+  impute_lm(other.rev ~ staff) %>%
+  head(3)
+```
+
+
+
+## Example: robust imputation ($M$-estimation) 
+
+```{r,echo=TRUE}
+typos_corrected[3:7] %>% 
+  impute_rlm(other.rev ~ turnover + staff) %>% 
+  impute_rlm(other.rev ~ staff) %>%
+  head(3)
+```
+
+
+## Example: Multiple variables, same predictors
+
+```{r,eval=FALSE, echo=TRUE}
+typos_corrected %>% 
+  impute_rlm(other.rev + total.rev ~ turnover) 
+
+typos_corrected %>% 
+  impute_rlm( . - turnover ~ turnover) 
+```
+
+
+## Example: grouping
+
+```{r, eval=FALSE,echo=TRUE}
+typos_corrected %>% 
+  impute_rlm(total.rev ~ turnover | size) 
+
+# or, using dplyr::group_by
+typos_corrected %>% 
+  group_by(size) %>%
+  impute_rlm(total.rev ~ turnover)
+```
+
+
+## Example: add random residual
+
+```{r, eval=FALSE,echo=TRUE}
+typos_corrected %>% 
+  impute_rlm(total.rev ~ turnover | size,
+        add_residual="observed")
+
+typos_corrected %>% 
+  impute_rlm(total.rev ~ turnover | size,
+        add_residual="normal") 
+```
+
+
+## Example: train on `A`, apply to `B`
+
+```{r,eval=FALSE, echo=TRUE}
+m <- MASS::rlm(other.rev ~ turnover + staff
+               , data=typos_corrected)
+impute(retailers, other.rev ~ m) 
+```
+
+## Currently available methods in `simputation`
+
+- Model based (optional random residual):
+    - standard/$M$/elasticnet regression 
+    - CART models and Random forest
+- Multivariate
+    - EM-based imputation
+    - missForest (=iterative random forest)
+- Donor imputation (including various donor pool specifications)
+    - k-nearest neigbour (based on [gower](https://cran.r-project.org/package=gower)'s distance)
+    - sequential, random hotdeck
+    - Predictive mean matching
+- Other
+    - (groupwise) median imputation (optional random residual)
+    - Proxy imputation: copy another variable or use a simple transformation
+      to compute imputed values.
+
+# Adjusting values to match restrictions
+
+## Value adjustment
+
+### Problem
+
+Most (model-based) imputation methods do not take validation rules into account.
+Imputed records typically violate e.g. balance restrictions.
+
+### Idea
+
+Minimally adjust the imputed numbers such that rules are satisfied:
+
+\begin{align*}
+\boldsymbol{x}^* = \arg\min_{\boldsymbol{x}\in \mathbb{R}^n}\|\boldsymbol{x}-\boldsymbol{x}^0\|_w,\:
+s.t.\: \boldsymbol{Ax}\leq \boldsymbol{b}
+\end{align*}
+\vfill{}
+\hfill{}{\tiny Pannekoek and Zhang (2012), Hildreth (1957), Van der Loo (2017)}
+
+
+## Adjusting values with the `rspa` package
+
+Step 1: Create an imputed dataset, remembering where the missings went.
+```{r, echo=TRUE}
+library(rspa)
+# Create imputed set:
+imputed <- typos_corrected %>%
+  tag_missing() %>%               # remember missings 
+  impute_median(staff ~ size) %>% # group-wise median
+  impute_rlm(                     # robust regression
+    turnover + other.rev + total.rev + staff.costs ~ staff)
+
+# Check: is everything imputed?
+sum(is.na(imputed[3:7]))
+```
+
+
+## Adjusting values with the `rspa` package
+
+Step 2: adjust imputed values.
+
+```{r,echo=TRUE}
+valid <- imputed %>% match_restrictions(rules)
+```
+\scriptsize{}
+```{r,echo=TRUE}
+# Check: do we satisfy all rules?
+valid %>% confront(rules, lin.eq.eps=0.01) %>% summary()
+```
+\normalfont{}
+
+# Logging changes in data
+
+## Logging changes in data
+
+### Question
+
+I would like to know which operation had what influence on my
+data values, statistics, validation results$\ldots$
+
+### Idea
+
+- All data flows through the pipe `%>%`. It sees input and output.
+- Construct a special pipe operator that measures and stores differences between in- and output.
+
+## The lumberjack operator `%>>%`
+
+\scriptsize{}
+```{r,echo=TRUE}
+library(lumberjack)
+imputed <- typos_corrected %>>%
+  start_log(log = validate::lbj_cells()) %>>% 
+  impute_lm(turnover ~ staff) %>>%
+  impute_median(other.rev + turnover ~ size) %>>%
+  dump_log()                                 
+```
+
+```{r, echo=TRUE}
+read.csv("cells.csv") %>% head()
+```
+\normalsize{}
+
+## The `lumberjack` package
+
+### Allows you to
+
+- replace the `magrittr` pipe `%>%` with the lumberjack operator `%>>%`
+- record what happens to your data as it flows through the `%>>%` pipe using _loggers_
+- use a logger exported by `lumberjack` or `validate`, or define your
+own logger.
+
+\vfill{}
+\hfill{}{\tiny Van der Loo (2017)}
+
