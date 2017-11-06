@@ -1,6 +1,6 @@
 ---
 title: "Using R in the Statistical Office"
-author: "Alex Kowarik and Mark van der Loo"
+author: "Alexander Kowarik and Mark van der Loo"
 date: "uRos 2017 | Bucharest"
 output: 
   beamer_presentation:
@@ -11,22 +11,38 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-
 # Statistics Austria
 
 ## Introducing R
 
-- bla
-- bla
+### At first
+- Started very "unofficial"
+- Self installed R versions floating around in the office
+- No support
+
+### First improvments
+- Standardized R installation
+- Specific units allowed to use R
+- First R server
+
 
 ## Support and policy
 
-- bla
+- Official support infrastructure (Jira) and responsible unit (Methods)
+- RStudio on server and desktop
+- Presentation of R projects (twice a year)
 
 ## Infrastructure
 
-- blabla
+- $\pm$ 40 weekly active users (over 100 installations)
 
+### Current situation
+- Installation package for the Windows desktops including R, RStudio, Latex,SVN and RTools
+- RStudio Server on a Linux (Ubuntu) server with 16 cores and 128 GB memory
+
+### Future
+- No more desktop R
+- RStudio Server Pro on a Linux machine as default client for everyone
 
 # Statistics Netherlands
 
@@ -78,5 +94,17 @@ knitr::opts_chunk$set(echo = FALSE)
 - Looking into RStudio/Shiny server but little/no support experience for
 linux currently exists in SN.
 
+## Lessons learned
+- Central installation or server solution preferable
+- Training courses are necessary
+- Support is needed when the number of users grow
+- internal CRAN mirror for IT security
+
+## Collaboration opportunities
+
+- Packages can be easily shared
+- Interface is unified by R
+- Bottom-up approach much more efficient than defining everything beforehand
+- Survival of the fittest vs. planned standard tools 
 
 
