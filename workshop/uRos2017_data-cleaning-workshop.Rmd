@@ -4,6 +4,7 @@ author: "Mark van der Loo"
 date: "uRos2017 | Bucharest"
 output: 
   beamer_presentation:
+    fig_caption: FALSE
     includes:
       in_header: ../tex/header.tex
 ---
@@ -13,19 +14,17 @@ knitr::opts_chunk$set(echo = FALSE)
 library(magrittr)
 ```
 
-## Agenda
+## These slides and code
 
-- Statistical value chain
-- Data validation
-- Error localization
-- Imputation
-- Correcting data
-- Loging changes
+Available via
 
+```
+http://www.github.com/markvanderloo/uRos2017
+```
 
 ## Who am I?
 
-- PhD: physics of molecules (2007)
+- PhD: theoretical chemistry (2008)
 - Official Statistician since 2007
 - Working with `R` (first `S+`) since 2007
 - First package (extremevalues) on CRAN 2010
@@ -37,6 +36,18 @@ library(magrittr)
 \includegraphics[height=3cm]{fig/book.jpg}
 \end{tabular}
 \end{center}
+
+\hfill{}{\tiny{} Van der Loo and De Jonge (2012, 2017)}
+
+## Agenda
+
+- Statistical value chain
+- When is data 'clean'?
+- Where are the errors?
+- Handling missing data
+- Tracking changes in data
+
+
 
 # Statistical value chain
 
@@ -78,7 +89,7 @@ library(magrittr)
 An activity, checking whether a combination of values comes from a predefined set of allowed value combinations.
 \vfill
 \hfill{}
-\tiny{ESS Handbook on data validation (2015)}
+\tiny{ESS Handbook on methodology of data validation (2015)}
 
 ### Examples
 
@@ -92,11 +103,11 @@ An activity, checking whether a combination of values comes from a predefined se
 ```{r,echo=TRUE}
 library(validate)
 data(retailers)
-head(retailers[3:7])
+head(retailers[3:7],3)
 # we add a ID column for later use...
 retailers$rec_id <- sprintf("%03d",1:nrow(retailers))
 ```
-
+\hfill{}{\tiny Van der Loo and De Jonge (2017b)}
 
 
 ## Data validation with the `validate` package
@@ -203,10 +214,9 @@ rules <- validator(.file="rules.txt")
 
 ### Problem
 
-Rule sets often grow organically and are hardly pruned. As a result, they may contain
-- Redundancies
-- Contradictions,
-rendering the rule set inefficient and hard to understand.
+Rule sets often grow organically and are hardly pruned. As a result, they may
+contain _redundancies_ or _contradictions_ rendering the rule set inefficient
+and hard to understand.
 
 ### Idea 
 
@@ -228,9 +238,50 @@ rules <- simplify_rules(rules)
 rules
 ```
 \vfill{}
-\hfill{}{\tiny de Jonge and Van der Loo (2017)}
+\hfill{}{\tiny De Jonge and Van der Loo (2017)}
 
 
+# Changing data based on domain knowledge
+
+## data modifying rules
+
+### Observation
+
+Up to about 50\% of changes in data may be done manually (or scripted)
+based on direct input of domain experts.
+
+### Question
+
+Can we support use of external domain knowledge in the data cleaning process
+while separating it from the code?
+
+## Data modification with `dcmodify`
+
+```{r, echo=TRUE}
+library(dcmodify)
+m <- modifier( 
+  if (other.rev < 0) other.rev <- -1 * other.rev  
+)
+modified <- modify(retailers, m)
+```
+
+```{r,echo=TRUE}
+head(modified[3:7], 3)
+```
+
+\hfill{}{\tiny{} Van der Loo and De Jonge (2017a)}
+
+## Data modification with `dcmodify`
+
+### Main idea
+
+Separate domain knowledge from the main program flow.
+
+### Main features
+
+- Define modifying rules on command line or separate text files
+- Add metadata to modifying rules
+- Read, inspect, manipulate, and apply rules to data
 
 
 # Error localization
@@ -264,10 +315,11 @@ rules
 \scriptsize{}
 ```{r,echo=TRUE}
 library(errorlocate)
-error_locations <- locate_errors(retailers, rules)
+error_locations <- locate_errors(modified, rules)
 values(error_locations)[30:37, 3:7]
 ```
 \normalfont{}
+\hfill{}{\tiny{} De Jonge and Van der Loo (2016)}
 
 ## Locating errors with `errorlocate`
 
@@ -319,6 +371,7 @@ cells(start=retailers, fixable=fixable_data, impute_lr=lr_imputed
       , compare='sequential')
 ```
 \normalfont{}
+\hfill{}{\tiny{}Van der Loo and De Jonge (2017c)}
 
 ## Deductive correction: typos in numbers
 
@@ -403,6 +456,8 @@ mydata[ina, "Y"] <- predict(m, newdata = mydata[ina,])
 - configuration for production
 - Integration with other process steps
 
+\hfill{}
+{\tiny{} Van der Loo (2017)}
 
 
 ## The simputation interface
@@ -521,7 +576,7 @@ Minimally adjust the imputed numbers such that rules are satisfied:
 s.t.\: \boldsymbol{Ax}\leq \boldsymbol{b}
 \end{align*}
 \vfill{}
-\hfill{}{\tiny Pannekoek and Zhang (2012), Hildreth (1957), Van der Loo (2017)}
+\hfill{}{\tiny Pannekoek and Zhang (2012),  Van der Loo (2017b)}
 
 
 ## Adjusting values with the `rspa` package
@@ -572,7 +627,7 @@ data values, statistics, validation results$\ldots$
 ## The lumberjack operator `%>>%`
 
 \scriptsize{}
-```{r,echo=TRUE}
+```{r,echo=TRUE, message=FALSE}
 library(lumberjack)
 imputed <- typos_corrected %>>%
   start_log(log = validate::lbj_cells()) %>>% 
@@ -596,5 +651,47 @@ read.csv("cells.csv") %>% head()
 own logger.
 
 \vfill{}
-\hfill{}{\tiny Van der Loo (2017)}
+\hfill{}{\tiny Van der Loo (2017c)}
+
+
+## Conclusions
+
+### Main takaway
+
+- Domain knowledge should be separated from main programme flow
+    - validation rules
+    - modifying rules
+- Formalizing domain knowledge in rules means you can compute on them!
+- Many building blocks that integrate easily are available freely from `R`
+
+### Also
+
+Please do not hesitate to send us questions, remarks, bug reports, on our
+packages, preferably through our github repo's.
+
+
+## References
+
+\tiny{}
+
+- De Jonge, E. and M. van der Loo (2016) _Locate Errors with Validation Rules._ R package version 0.1.2.
+- De Jonge, E. and M. van der Loo (2017) _validatetools: Tools for Manipulating and Simplifying Validation Rule Sets._ R package version 0.4.1.
+- ESS (2015) _Methodology of data validation_ ESS handbook delivered by the ESSnet on validation.
+- Fellegi, IP and D. Holt (1976) _A systematic approach to automatic edit and imputation_ JASA
+- Kowarik, A. and M. Templ (2016) _Imputation with the R Package VIM._ JSS 74 (7) 1--16.
+- Pannekoek, J. and Zshang, L.-C. _ Optimal adjustments for inconsistency in imputed data._ 
+Discussion paper 201219 Statistics Netherlands.
+- Van der Loo, M. and De Jonge, E. (2012) _Learning RStudio for R Statistical Computing._ Packt.
+- **Van der Loo, M. and De Jonge, E. (2017, in press) _Statistical data cleaning with applications in R_ Wiley, Inc.**
+
+- Van der Loo and De Jonge (2017a) _dcmodify: Modify Data Using Externally Defined Modification Rules._ R package version 0.1.1
+- Van der Loo, M. and De Jonge (2017b) _validate: Data Validation Infrastructure._ R package version 0.2.0. 
+- Van der Loo, M. and De Jonge (2017c) _deductive: Data Correction and Imputation Using Deductive Methods_ R package version 0.1.3.
+- Van der Loo, M. (2017) _simputation: Simple Imputation_ R package version 0.2.2.
+- Van der Loo, M. (2017b) _rspa: Adapt Numerical Records to Fit (In)Equality Restrictions._ R package version 0.2.2.
+- Van der Loo, M. (2017c) _lumberjack: Track Changes in Data_ R package version 0.2.0.
+
+
+
+
 
