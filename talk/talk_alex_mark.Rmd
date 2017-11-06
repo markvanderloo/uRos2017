@@ -94,11 +94,15 @@ knitr::opts_chunk$set(echo = FALSE)
 - Looking into RStudio/Shiny server but little/no support experience for
 linux currently exists in SN.
 
+# General remarks
+
 ## Lessons learned
 - Central installation or server solution preferable
 - Training courses are necessary
 - Support is needed when the number of users grow
-- internal CRAN mirror for IT security
+- Community is important
+- Internal CRAN mirror for IT security
+
 
 ## Collaboration opportunities
 
