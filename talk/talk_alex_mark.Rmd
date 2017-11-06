@@ -110,5 +110,8 @@ linux currently exists in SN.
 - Interface is unified by R
 - Bottom-up approach much more efficient than defining everything beforehand
 - Survival of the fittest vs. planned standard tools 
+- Interesting packages can be found at
+    - Official Statistics Task View (CRAN)
+    - [www.awesomeofficialstatistics.org](http://www.awesomeofficialstatistics.org)
 
 
