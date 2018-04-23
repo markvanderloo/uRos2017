@@ -1,7 +1,7 @@
 ---
 title: "Using R in the Statistical Office"
 author: "Alexander Kowarik and Mark van der Loo"
-date: "WG Meth | Luxemburg"
+date: "WG Methodology | Luxemburg"
 output: 
   beamer_presentation:
     fig_caption: false
@@ -94,10 +94,14 @@ knitr::opts_chunk$set(echo = FALSE)
 
 - When relevant to statistics Netherlands, with positive business case.
 
-## Packages contributed
+## Packages and literature contributed
 
-![](fig/wordcloud.pdf)
-
+\begin{center}
+\begin{tabular}{p{0.45\textwidth}p{0.45\textwidth}}
+\includegraphics[width=0.45\textwidth]{fig/wordcloud.pdf}&
+\includegraphics[width=0.40\textwidth]{fig/SDCR.jpg}
+\end{tabular}
+\end{center}
 
 ## Current infrastructure
 
@@ -107,8 +111,8 @@ knitr::opts_chunk$set(echo = FALSE)
     - Full CRAN repo available internally (there's no direct internet access from most VM's)
 - RDS server (8core, 64G VM's) for heavier work
 - Working on connection to Spark server (Sparklyr)
-- Looking into RStudio/Shiny server but little/no support experience for
-linux currently exists in SN.
+- Working on RStudio/Shiny server
+
 
 # General remarks
 
@@ -118,19 +122,40 @@ linux currently exists in SN.
 - Support is needed when the number of users grow
 - Community is important
 - Internal CRAN mirror for IT security
+- There is a lot of free support from the world-wide community
+
+### See also
+
+Kowarik and Van der Loo (2018). Romanian Statistical Review 1/2018 pp. 15-29
 
 
 ## Collaboration opportunities
 
 - Packages can be easily shared
-- Interface is unified by R
+- Interface is unified by R, including interface with C/C++, Python,$\ldots$
 - Bottom-up approach much more efficient than defining everything beforehand
-- Survival of the fittest vs. planned standard tools 
 - Interesting packages can be found at
     - Official Statistics Task View (CRAN)
     - [www.awesomeofficialstatistics.org](http://www.awesomeofficialstatistics.org)
 
-## Community events
+
+## Inivitation
+
+![](fig/uRos2018.jpg)
+
+
+
+**Statistics Netherlands, Den Haag**
+
+- 12-14 September: uRos2018 conference
+- 10-11 September: unconfUROS hackathon event
+
+### More information:
+
+`www.uRos2018.org | @uRos2018 | uRos2018@cbs.nl`
+
+## temp
+
  - **[The use of R in official statistics](https://www.aanmelder.nl/uros2018)**
  - **[unconfUROS](https://github.com/uRos2018/unconfUROS)**
  
